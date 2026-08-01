@@ -1,0 +1,14 @@
+---
+interface Props {
+  type?: 'note' | 'warning' | 'tip';
+}
+const { type = 'note' } = Astro.props;
+const labels: Record<string, string> = { note: 'Note', warning: 'Warning', tip: 'Tip' };
+---
+
+<div class="not-prose my-6 rounded-lg border-l-4 p-4 text-sm" style={`border-color: var(--accent); background-color: var(--surface);`}>
+  <p class="mb-1 font-semibold" style="color: var(--ink);">{labels[type]}</p>
+  <div style="color: var(--muted);">
+    <slot />
+  </div>
+</div>

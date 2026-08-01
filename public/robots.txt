@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nedjagang.github.io/sitemap-index.xml

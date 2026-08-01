@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Production builds
+dist/
+build/
+out/
+
+# Astro internal
+.astro/
+
+# Wrangler local state
+.wrangler/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs and debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

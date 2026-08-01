@@ -1,0 +1,24 @@
+---
+title: "Magpie"
+date: 2026-07-17
+status: building
+overview: "An open-source control plane for OpenTelemetry collector fleets: fleet-wide pipeline visibility and safe remote configuration over OpAMP, with canary rollouts and automatic rollback."
+problem: "Once a collector fleet outgrows manual configuration management, a bad config push can silently take down telemetry for everything behind it — and nobody notices until the dashboards go quiet."
+techStack: ["Python", "FastAPI", "OpAMP", "OpenTelemetry", "Docker"]
+tags: ["OpenTelemetry", "OpAMP", "Control plane", "Observability"]
+githubUrl: "https://github.com/Nedjagang/magpie"
+---
+
+## Why this exists
+
+Application deploys earned guardrails years ago — staged rollouts, health checks, automatic rollback. Collector configuration mostly didn't: on many fleets it still ships as "push and hope." Magpie's premise is that collector config deserves application-grade guardrails, because when telemetry breaks, it takes your ability to see everything else down with it.
+
+## What it does
+
+- **Fleet visibility** — a live view of every agent in the fleet: which config version each collector runs, and the state of its pipelines.
+- **Safe remote configuration over OpAMP** — config push and version tracking through the OpAMP protocol rather than out-of-band file drops.
+- **Canary rollouts with automatic rollback** — changes go to a canary cohort first; a health regression reverts the change without operator intervention.
+
+## Status
+
+Apache 2.0, solo-maintained, under active development. Python and FastAPI, containerised, built for the point where fleet size outgrows manual configuration management.

@@ -1,0 +1,87 @@
+---
+import { SITE } from '../lib/site';
+
+const links = [
+  { label: 'GitHub', href: SITE.github },
+  { label: 'LinkedIn', href: SITE.linkedin },
+  { label: 'Email', href: SITE.email },
+  { label: 'RSS', href: '/rss.xml' },
+];
+
+// Swatch values mirror the data-accent palette in global.css.
+const accents = [
+  { name: 'yellow', color: '#f5c518' },
+  { name: 'purple', color: '#b28dff' },
+  { name: 'blue', color: '#6fb1ff' },
+  { name: 'green', color: '#6ee7b7' },
+  { name: 'orange', color: '#ff9a5c' },
+];
+---
+
+<footer class="w-full border-t py-6" style="border-color: var(--border);">
+  <div class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 text-sm" style="color: var(--muted);">
+    <div>
+      <p class="display lilt italic">{SITE.tagline}</p>
+      <p class="mt-1 text-xs">© {SITE.author}</p>
+    </div>
+    <div class="flex items-center gap-5">
+      <div class="flex items-center gap-2" role="group" aria-label="Accent color">
+        {accents.map((a) => (
+          <button
+            type="button"
+            class="accent-dot"
+            data-accent-pick={a.name}
+            aria-label={`Set accent color to ${a.name}`}
+            style={`background-color: ${a.color};`}
+          ></button>
+        ))}
+      </div>
+      {links.map((link) => (
+        <a
+          href={link.href}
+          target={link.href.startsWith('http') ? '_blank' : undefined}
+          rel={link.href.startsWith('http') ? 'noopener' : undefined}
+          class="transition-colors hover:text-[var(--accent)]"
+        >{link.label}</a>
+      ))}
+    </div>
+  </div>
+</footer>
+
+<style>
+  .accent-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+    cursor: pointer;
+    transition: transform 120ms ease;
+  }
+  .accent-dot:hover {
+    transform: scale(1.2);
+  }
+  .accent-dot[aria-pressed='true'] {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+</style>
+
+<script>
+  function initAccentDots() {
+    const dots = document.querySelectorAll<HTMLButtonElement>('.accent-dot');
+    const current = document.documentElement.getAttribute('data-accent') || 'yellow';
+    dots.forEach((dot) => {
+      dot.setAttribute('aria-pressed', String(dot.dataset.accentPick === current));
+      if (dot.dataset.wired) return;
+      dot.dataset.wired = 'true';
+      dot.addEventListener('click', () => {
+        const accent = dot.dataset.accentPick!;
+        localStorage.setItem('accent', accent);
+        document.documentElement.setAttribute('data-accent', accent);
+        dots.forEach((d) => d.setAttribute('aria-pressed', String(d === dot)));
+      });
+    });
+  }
+  initAccentDots();
+  document.addEventListener('astro:page-load', initAccentDots);
+</script>

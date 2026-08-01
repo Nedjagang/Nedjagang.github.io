@@ -1,0 +1,16 @@
+---
+interface Props {
+  label: string;
+  href?: string;
+}
+const { label, href } = Astro.props;
+const Element = href ? 'a' : 'span';
+---
+
+<Element
+  href={href}
+  class="inline-block rounded-full border px-2.5 py-0.5 text-xs"
+  style="border-color: var(--border); color: var(--muted);"
+>
+  {label}
+</Element>

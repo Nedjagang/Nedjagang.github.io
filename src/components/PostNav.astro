@@ -1,0 +1,65 @@
+---
+interface PostLink {
+  href: string;
+  title: string;
+}
+
+interface Props {
+  older: PostLink | null;
+  newer: PostLink | null;
+}
+
+const { older, newer } = Astro.props;
+---
+
+{(older || newer) && (
+  <nav class="post-nav not-prose mt-12 grid grid-cols-1 gap-3 border-t pt-6 sm:grid-cols-2" style="border-color: var(--border);" aria-label="Post navigation">
+    {/* Feed reads newest-first, so "Previous" steps back up toward newer posts and "Next" continues down toward older ones — matching scroll order, not publish order. */}
+    {newer ? (
+      <a href={newer.href} class="post-nav-link post-nav-prev">
+        <span class="eyebrow post-nav-label">&larr; Previous</span>
+        <span class="post-nav-title">{newer.title}</span>
+      </a>
+    ) : <span />}
+    {older ? (
+      <a href={older.href} class="post-nav-link post-nav-next">
+        <span class="eyebrow post-nav-label">Next &rarr;</span>
+        <span class="post-nav-title">{older.title}</span>
+      </a>
+    ) : <span />}
+  </nav>
+)}
+
+<style>
+  .post-nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+  }
+  .post-nav-link:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+  }
+  .post-nav-next {
+    text-align: right;
+  }
+  .post-nav-label {
+    color: var(--accent);
+  }
+  .post-nav-title {
+    color: var(--ink);
+    font-weight: 500;
+    transition: transform 150ms ease;
+  }
+  .post-nav-prev:hover .post-nav-title {
+    transform: translateX(-3px);
+  }
+  .post-nav-next:hover .post-nav-title {
+    transform: translateX(3px);
+  }
+</style>

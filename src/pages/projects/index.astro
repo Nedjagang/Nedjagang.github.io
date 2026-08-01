@@ -1,0 +1,134 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import Tag from '../../components/Tag.astro';
+import { allProjects } from '../../lib/collections';
+
+const projects = await allProjects();
+---
+
+<BaseLayout title="Projects" description="Things I've built — agent tooling, observability infrastructure, and the write-ups behind them.">
+  <div class="pt-2 sm:pt-4 mb-10 rise">
+    <h1 class="display text-3xl sm:text-4xl mb-6" style="color: var(--ink);">
+      <span class="squiggle-wrap">
+        Projects
+        <svg class="squiggle" viewBox="0 0 180 20" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0,10 Q15,0 30,10 T60,10 T90,10 T120,10 T150,10 T180,10" />
+        </svg>
+      </span>
+    </h1>
+    <p style="color: var(--muted);">Things I've built, with the reasoning written down.</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 pb-10 sm:grid-cols-2">
+    {projects.map((project, i) => (
+      <div class="project-card rise" style={`animation-delay: ${Math.min(i, 5) * 45 + 100}ms`}>
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <StatusBadge status={project.data.status} />
+        </div>
+        <h2 class="post-card-title">
+          <a href={`/projects/${project.slug}`} class="project-card-link" transition:name={project.slug}>{project.data.title}</a>
+        </h2>
+        <p class="post-card-summary">{project.data.overview}</p>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          {project.data.techStack.map((t) => <Tag label={t} />)}
+        </div>
+        {(project.data.demoUrl || project.data.githubUrl) && (
+          <p class="mt-3 flex gap-4 text-sm" style="color: var(--muted);">
+            {project.data.demoUrl && (
+              <a href={project.data.demoUrl} target="_blank" rel="noopener" class="link-quiet">Live demo <span class="ext-arrow" aria-hidden="true">↗</span></a>
+            )}
+            {project.data.githubUrl && (
+              <a href={project.data.githubUrl} target="_blank" rel="noopener" class="link-quiet">Source <span class="ext-arrow" aria-hidden="true">↗</span></a>
+            )}
+          </p>
+        )}
+      </div>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .rise {
+    animation: rise 450ms cubic-bezier(0.25, 1, 0.5, 1) backwards;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  .project-card {
+    padding: 1.1rem 1.25rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  }
+  .project-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .post-card-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+  }
+  .project-card-link {
+    color: var(--ink);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+  .project-card:hover .project-card-link {
+    color: var(--accent);
+  }
+  /* Whole card leads to the project; the link's tap target covers the card. */
+  .project-card {
+    position: relative;
+  }
+  .project-card-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  /* Repo links sit above the stretched card link so they stay clickable. */
+  .project-card .link-quiet,
+  .project-card :global(a[target='_blank']) {
+    position: relative;
+    z-index: 1;
+  }
+  .post-card-summary {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .squiggle-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .squiggle {
+    position: absolute;
+    left: 0;
+    bottom: -0.3em;
+    width: 100%;
+    height: 0.4em;
+    overflow: visible;
+  }
+  .squiggle path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 260;
+    stroke-dashoffset: 300;
+    animation: squiggle-draw 650ms cubic-bezier(0.25, 1, 0.5, 1) 250ms both;
+  }
+  @keyframes squiggle-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+</style>

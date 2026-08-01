@@ -1,0 +1,86 @@
+---
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import Tag from '../../components/Tag.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import Timeline from '../../components/Timeline.astro';
+import PostNav from '../../components/PostNav.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { readingTime } from '../../lib/readingTime';
+import { allProjects } from '../../lib/collections';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({ params: { slug: project.slug }, props: { project } }));
+}
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { Content, headings } = await project.render();
+const time = readingTime(project.body);
+
+const projects = await allProjects();
+const index = projects.findIndex((p) => p.slug === project.slug);
+const asLink = (p: CollectionEntry<'projects'> | undefined) =>
+  p ? { href: `/projects/${p.slug}`, title: p.data.title } : null;
+const older = asLink(projects[index + 1]);
+const newer = index > 0 ? asLink(projects[index - 1]) : null;
+---
+
+<ArticleLayout
+  title={project.data.title}
+  description={project.data.overview}
+  date={project.data.date}
+  updated={project.data.updated}
+  headings={headings}
+  eyebrow={`Project · ${time}`}
+  slug={project.slug}
+>
+  <div class="mb-6 flex flex-wrap items-center gap-3">
+    <StatusBadge status={project.data.status} />
+    {project.data.tags.map((t) => <Tag label={t} />)}
+  </div>
+
+  {(project.data.demoUrl || project.data.githubUrl) && (
+    <div class="not-prose mb-8 flex flex-wrap gap-4 text-sm" style="color: var(--muted);">
+      {project.data.demoUrl && (
+        <a href={project.data.demoUrl} target="_blank" rel="noopener" class="link-quiet">Live demo <span class="ext-arrow" aria-hidden="true">↗</span></a>
+      )}
+      {project.data.githubUrl && (
+        <a href={project.data.githubUrl} target="_blank" rel="noopener" class="link-quiet">Source <span class="ext-arrow" aria-hidden="true">↗</span></a>
+      )}
+    </div>
+  )}
+
+  <div class="not-prose mb-8 flex flex-wrap gap-2">
+    {project.data.techStack.map((t) => <Tag label={t} />)}
+  </div>
+
+  <p class="mb-8 border-l-2 pl-4 text-sm" style="border-color: var(--border); color: var(--muted);">
+    {project.data.problem}
+  </p>
+
+  <Content />
+
+  {project.data.timeline.length > 0 && (
+    <div class="not-prose mt-10">
+      <h2 class="mb-4 text-lg font-semibold" style="color: var(--ink);">Timeline</h2>
+      <Timeline entries={project.data.timeline} />
+    </div>
+  )}
+
+  {project.data.related.length > 0 && (
+    <div class="not-prose mt-10 border-t pt-6" style="border-color: var(--border);">
+      <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide" style="color: var(--muted);">Related writing</h2>
+      <ul class="space-y-1 text-sm">
+        {project.data.related.map((slug) => (
+          <li><a href={`/writing/${slug}`} class="link-quiet">{slug}</a></li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  <PostNav older={older} newer={newer} />
+</ArticleLayout>

@@ -1,0 +1,18 @@
+---
+// Diagrams are pre-rendered to SVG with mermaid-cli (see src/diagrams/) and
+// inlined here — no runtime mermaid.js. One dark + one light variant per
+// diagram; global.css shows the one matching the active theme.
+// ponytail: re-render by hand if a diagram changes — `npx @mermaid-js/mermaid-cli
+// -i d.mmd -o d.dark.svg -t dark -b transparent -I <unique-id>` (and -t neutral for light).
+interface Props {
+  dark: string;
+  light: string;
+  label: string;
+}
+const { dark, light, label } = Astro.props;
+---
+
+<figure class="diagram not-prose my-6 overflow-x-auto rounded-lg border p-4" style="border-color: var(--border); background-color: var(--surface);" role="img" aria-label={label}>
+  <div class="diagram-dark" set:html={dark} />
+  <div class="diagram-light" set:html={light} />
+</figure>

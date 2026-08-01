@@ -1,0 +1,23 @@
+---
+title: "Closed Loop"
+date: 2026-07-01
+status: completed
+overview: "An agent observability layer on SigNoz: agent-level tracing, cost and failure-mode views for LLM agent workloads over a ClickHouse-backed OTLP pipeline."
+problem: "LLM agent workloads fail in ways request-level APM doesn't surface — runaway token spend, tool-call loops, and failure modes that live between spans rather than inside them."
+techStack: ["SigNoz", "ClickHouse", "OTLP", "OpenTelemetry", "Azure", "nginx"]
+tags: ["AI agents", "Observability", "SigNoz", "OpenTelemetry"]
+---
+
+## Why this exists
+
+Built at the Agents of SigNoz Hackathon (2026), as a team of three. The question we wanted to answer: how much agent-specific observability can you get from *stock* SigNoz — no forks, no custom UI — if you shape the telemetry right on the way in?
+
+## What it does
+
+- **Agent-level tracing** — traces structured around agent runs and tool calls, not just HTTP requests, so a reasoning loop reads as one story.
+- **Cost views** — token spend surfaced per agent and per run, because cost is a first-class failure mode for agentic systems.
+- **Failure-mode views** — the ways agents actually break (loops, tool errors, dead-end runs) made visible instead of buried in span attributes.
+
+## How it runs
+
+Stock SigNoz over a ClickHouse-backed OTLP pipeline, self-hosted on Azure behind nginx with TLS termination.

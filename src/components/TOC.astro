@@ -1,0 +1,87 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+interface Props {
+  headings: Heading[];
+}
+const { headings } = Astro.props;
+const items = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{items.length > 0 && (
+  <nav id="toc" class="sticky top-24 hidden text-sm lg:block" aria-label="Table of contents">
+    <p class="mb-3 text-xs font-semibold uppercase tracking-wide" style="color: var(--muted);">On this page</p>
+    <ul class="space-y-2 border-l" style="border-color: var(--border);">
+      {items.map((h) => (
+        <li style={`padding-left: ${h.depth === 3 ? '1.75rem' : '1rem'};`}>
+          <a href={`#${h.slug}`} class="toc-link">{h.text}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .toc-link {
+    display: block;
+    color: var(--muted);
+  }
+  /* Hover fades in smoothly; scroll-driven active state snaps instantly
+     so the highlight doesn't visibly trail a fast scroll. */
+  .toc-link:hover {
+    color: var(--accent);
+    transition: color 120ms ease;
+  }
+  .toc-link.toc-active {
+    color: var(--accent);
+  }
+
+  /* Past 2xl the reading column no longer fills the viewport, so float the
+     TOC in the middle of the left margin instead of hugging the article. */
+  @media (min-width: 1536px) {
+    #toc {
+      position: fixed;
+      top: 8rem;
+      left: calc((100vw - 56rem) / 4 - 6.5rem);
+      width: 13rem;
+    }
+  }
+</style>
+
+<script>
+  // Scroll-spy: highlight the TOC entry for the last heading above the fold.
+  // ponytail: linear scan per scroll event; fine for the <30 headings a post has.
+  let links: HTMLAnchorElement[] = [];
+  let headings: HTMLElement[] = [];
+
+  function setActive() {
+    if (!headings.length) return;
+    // Near the bottom of the page the last heading may never cross the 100px
+    // line if there isn't enough trailing content to scroll past it.
+    const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+    let current = atBottom ? headings[headings.length - 1] : headings[0];
+    if (!atBottom) {
+      for (const h of headings) {
+        if (h.getBoundingClientRect().top <= 100) current = h;
+      }
+    }
+    for (const link of links) {
+      link.classList.toggle('toc-active', link.hash === `#${current.id}`);
+    }
+  }
+
+  function collect() {
+    links = [...document.querySelectorAll<HTMLAnchorElement>('#toc a[href^="#"]')];
+    headings = links
+      .map((l) => document.getElementById(decodeURIComponent(l.hash.slice(1))))
+      .filter((h): h is HTMLElement => h !== null);
+    setActive();
+  }
+
+  collect();
+  document.addEventListener('astro:page-load', collect);
+  addEventListener('scroll', setActive, { passive: true });
+</script>

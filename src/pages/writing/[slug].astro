@@ -1,0 +1,150 @@
+---
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import Tag from '../../components/Tag.astro';
+import PostNav from '../../components/PostNav.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { readingTime } from '../../lib/readingTime';
+import { allPosts, writingSummary } from '../../lib/collections';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('writing');
+  return entries.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'writing'>;
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await entry.render();
+const time = readingTime(entry.body);
+const d = entry.data;
+const summary = writingSummary(d);
+const eyebrow = [d.kind, d.repository, time].filter(Boolean).join(' · ');
+
+const posts = await allPosts();
+const index = posts.findIndex((p) => p.slug === entry.slug);
+const older = posts[index + 1] ?? null;
+const newer = index > 0 ? posts[index - 1] : null;
+---
+
+<ArticleLayout
+  title={d.title}
+  description={summary}
+  date={d.date}
+  updated={d.updated}
+  headings={headings}
+  eyebrow={eyebrow}
+  slug={entry.slug}
+>
+  <div class="mb-8 flex flex-wrap gap-2">
+    {(d.tags ?? []).map((t) => <Tag label={t} />)}
+  </div>
+
+  {d.purpose && (
+    <>
+      <h2>Purpose</h2>
+      <p>{d.purpose}</p>
+    </>
+  )}
+
+  {d.architecture && (
+    <>
+      <h2>Architecture</h2>
+      <p>{d.architecture}</p>
+    </>
+  )}
+
+  {d.folderStructure && <><h2>Folder structure</h2><pre><code>{d.folderStructure}</code></pre></>}
+
+  {d.problem && (
+    <>
+      <h2>Problem</h2>
+      <p>{d.problem}</p>
+    </>
+  )}
+
+  <Content />
+
+  {!!d.designDecisions?.length && (
+    <>
+      <h2>Design decisions</h2>
+      <ul>{d.designDecisions.map((item) => <li>{item}</li>)}</ul>
+    </>
+  )}
+
+  {!!d.patterns?.length && (
+    <>
+      <h2>Patterns worth reusing</h2>
+      <ul>{d.patterns.map((item) => <li>{item}</li>)}</ul>
+    </>
+  )}
+
+  {!!d.learned?.length && (
+    <>
+      <h2>What I learned</h2>
+      <ul>{d.learned.map((item) => <li>{item}</li>)}</ul>
+    </>
+  )}
+
+  {!!d.improve?.length && (
+    <>
+      <h2>What I'd improve</h2>
+      <ul>{d.improve.map((item) => <li>{item}</li>)}</ul>
+    </>
+  )}
+
+  {!!d.tradeoffs?.length && (
+    <>
+      <h2>Tradeoffs</h2>
+      <ul>{d.tradeoffs.map((item) => <li>{item}</li>)}</ul>
+    </>
+  )}
+
+  {d.scaling && (
+    <>
+      <h2>Scaling</h2>
+      <p>{d.scaling}</p>
+    </>
+  )}
+
+  {!!d.failureModes?.length && (
+    <>
+      <h2>Failure modes</h2>
+      <ul>{d.failureModes.map((item) => <li>{item}</li>)}</ul>
+    </>
+  )}
+
+  {!!d.observations?.length && (
+    <>
+      <h2>Observations</h2>
+      <ul>{d.observations.map((item) => <li>{item}</li>)}</ul>
+    </>
+  )}
+
+  {!!d.questions?.length && (
+    <>
+      <h2>Open questions</h2>
+      <ul>{d.questions.map((item) => <li>{item}</li>)}</ul>
+    </>
+  )}
+
+  {!!d.references?.length && (
+    <>
+      <h2>References</h2>
+      <ul>
+        {d.references.map((ref) => (
+          <li><a href={ref.url}>{ref.label}</a></li>
+        ))}
+      </ul>
+    </>
+  )}
+
+  {d.substackUrl && (
+    <p class="mt-10 text-sm" style="color: var(--muted);">
+      Originally published on <a href={d.substackUrl} target="_blank" rel="noopener" class="link-quiet">Substack</a>.
+    </p>
+  )}
+
+  <PostNav older={older} newer={newer} />
+</ArticleLayout>

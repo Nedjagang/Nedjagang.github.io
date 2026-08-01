@@ -1,0 +1,26 @@
+---
+interface Entry {
+  date: Date;
+  label: string;
+}
+interface Props {
+  entries: Entry[];
+}
+const { entries } = Astro.props;
+const sorted = [...entries].sort((a, b) => a.date.valueOf() - b.date.valueOf());
+---
+
+<ol class="relative border-l pl-6" style="border-color: var(--border);">
+  {sorted.map((entry) => (
+    <li class="mb-6 last:mb-0">
+      <span
+        class="absolute -left-[5px] mt-1.5 h-2.5 w-2.5 rounded-full"
+        style="background-color: var(--accent);"
+      ></span>
+      <time class="text-xs" style="color: var(--muted);">
+        {entry.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+      </time>
+      <p style="color: var(--ink);">{entry.label}</p>
+    </li>
+  ))}
+</ol>

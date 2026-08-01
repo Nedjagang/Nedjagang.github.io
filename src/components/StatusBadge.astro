@@ -1,0 +1,30 @@
+---
+interface Props {
+  status: 'building' | 'completed' | 'archived';
+}
+const { status } = Astro.props;
+// building uses an amber distinct from --accent gold — the accent stays reserved
+// for the one thing that matters most on a given view, not shared with status dots.
+const colors: Record<Props['status'], string> = {
+  building: '#ff9a5c',
+  completed: '#6ee7b7',
+  archived: '#94a3b8',
+};
+---
+
+<span class="inline-flex items-center gap-1.5 text-xs" style="color: var(--muted);">
+  <span
+    class:list={['inline-block h-1.5 w-1.5 rounded-full', status === 'building' && 'status-dot-pulse']}
+    style={`background-color: ${colors[status]};`}
+  ></span>
+  {status}
+</span>
+
+<style>
+  .status-dot-pulse {
+    animation: dot-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes dot-pulse {
+    50% { opacity: 0.35; }
+  }
+</style>

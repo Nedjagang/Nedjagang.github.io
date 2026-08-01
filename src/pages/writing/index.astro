@@ -1,0 +1,185 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../lib/site';
+import { allPosts } from '../../lib/collections';
+
+const posts = await allPosts();
+const kinds = [...new Set(posts.map((p) => p.kind).filter(Boolean))] as string[];
+
+const fmt = new Intl.DateTimeFormat('en', { month: 'long', day: 'numeric', year: 'numeric' });
+---
+
+<BaseLayout title="Writing" description={`Notes and write-ups by ${SITE.author} — agentic systems, observability platforms, and production war stories.`}>
+  <div class="pt-2 sm:pt-4 mb-10 rise">
+    <h1 class="display text-3xl sm:text-4xl mb-4" style="color: var(--ink);">
+      <span class="squiggle-wrap">
+        Writing
+        <svg class="squiggle" viewBox="0 0 180 20" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0,10 Q15,0 30,10 T60,10 T90,10 T120,10 T150,10 T180,10" />
+        </svg>
+      </span>
+    </h1>
+    <p style="color: var(--muted);">
+      Agentic systems, observability platforms, and what running both in production teaches.
+    </p>
+  </div>
+
+  {kinds.length > 0 && (
+    <div class="mb-8 flex flex-wrap gap-2 rise rise-2" role="group" aria-label="Filter posts by type">
+      <button type="button" class="filter-chip" data-kind="" aria-pressed="true">All</button>
+      {kinds.map((k) => (
+        <button type="button" class="filter-chip" data-kind={k} aria-pressed="false">{k}</button>
+      ))}
+    </div>
+  )}
+
+  <div class="space-y-4 pb-10" id="feed">
+    {posts.map((post, i) => (
+      <a
+        href={post.href}
+        class="post-card rise"
+        style={`animation-delay: ${Math.min(i, 5) * 45 + 100}ms`}
+        data-kind={post.kind}
+      >
+        {post.kind && <p class="eyebrow mb-1.5">{post.kind}</p>}
+        <h2 class="post-card-title" transition:name={post.slug}>{post.title}</h2>
+        <p class="post-card-summary">{post.summary}</p>
+        <p class="post-card-meta">
+          {fmt.format(post.date)}{post.minutes >= 3 ? ` · ${post.minutes} min read` : ''}
+        </p>
+      </a>
+    ))}
+    {posts.length === 0 && (
+      <p class="rise rise-2 text-sm" style="color: var(--muted);">
+        First notes are on the way — the <a href="/rss.xml" class="link-quiet">RSS feed</a> will carry them when they land.
+      </p>
+    )}
+    <p id="no-results" class="hidden text-sm" style="color: var(--muted);">
+      Nothing matches this filter.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Page composes itself on load: hero, chips, then cards in sequence. */
+  .rise {
+    animation: rise 450ms cubic-bezier(0.25, 1, 0.5, 1) backwards;
+  }
+  .rise-2 { animation-delay: 60ms; }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  .filter-chip {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.3rem 0.85rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  }
+  .filter-chip:hover {
+    border-color: var(--accent);
+    color: var(--ink);
+  }
+  .filter-chip[aria-pressed='true'] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .post-card {
+    display: block;
+    padding: 1.1rem 1.25rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    text-decoration: none;
+    transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  }
+  .post-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .post-card-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+    transition: color 150ms ease;
+  }
+  .post-card:hover .post-card-title {
+    color: var(--accent);
+  }
+  .post-card-summary {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .post-card-meta {
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    color: var(--card-meta);
+  }
+
+  .squiggle-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .squiggle {
+    position: absolute;
+    left: 0;
+    bottom: -0.3em;
+    width: 100%;
+    height: 0.4em;
+    overflow: visible;
+  }
+  .squiggle path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 260;
+    stroke-dashoffset: 300;
+    animation: squiggle-draw 650ms cubic-bezier(0.25, 1, 0.5, 1) 250ms both;
+  }
+  @keyframes squiggle-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+</style>
+
+<script>
+  function initFilters() {
+    const chips = [...document.querySelectorAll<HTMLButtonElement>('.filter-chip')];
+    if (!chips.length || chips[0].dataset.wired) return;
+    const cards = [...document.querySelectorAll<HTMLElement>('.post-card')];
+    const noResults = document.getElementById('no-results')!;
+    chips.forEach((chip) => {
+      chip.dataset.wired = 'true';
+      chip.addEventListener('click', () => {
+        const kind = chip.dataset.kind;
+        chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        let visible = 0;
+        for (const card of cards) {
+          const show = !kind || card.dataset.kind === kind;
+          card.style.display = show ? '' : 'none';
+          if (show) visible++;
+        }
+        noResults.classList.toggle('hidden', visible > 0);
+      });
+    });
+  }
+  initFilters();
+  document.addEventListener('astro:page-load', initFilters);
+</script>

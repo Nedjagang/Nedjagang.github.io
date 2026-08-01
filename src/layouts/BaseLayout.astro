@@ -1,0 +1,40 @@
+---
+import '../styles/global.css';
+import { ViewTransitions } from 'astro:transitions';
+import { themeInitScript } from '../lib/themeInit';
+import SEO from '../components/SEO.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  type?: 'website' | 'article';
+  publishedTime?: Date;
+  hideFooter?: boolean;
+}
+
+const { title, description, type, publishedTime, hideFooter } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline set:html={themeInitScript} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <SEO title={title} description={description} type={type} publishedTime={publishedTime} />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml" />
+    <ViewTransitions />
+  </head>
+  <body class="min-h-screen font-sans antialiased">
+    <a href="#main" class="skip-link">Skip to content</a>
+    <Nav />
+    <main id="main" class="mx-auto max-w-4xl px-6 py-10">
+      <slot />
+    </main>
+    {!hideFooter && <Footer />}
+  </body>
+</html>

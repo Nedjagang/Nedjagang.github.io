@@ -1,0 +1,107 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import TOC from '../components/TOC.astro';
+import CodeCopyScript from '../components/CodeCopyScript.astro';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  date: Date;
+  updated?: Date;
+  headings?: Heading[];
+  eyebrow?: string;
+  slug?: string;
+}
+
+const { title, description, date, updated, headings = [], eyebrow, slug = 'article-title' } = Astro.props;
+const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<BaseLayout title={title} description={description} type="article" publishedTime={date}>
+  <div class="reading-progress" aria-hidden="true"></div>
+  <a href="/writing" class="back-link">
+    <span aria-hidden="true">&larr;</span> Writing
+  </a>
+  <div class="grid grid-cols-1 items-start gap-10 lg:grid-cols-[200px_1fr] 2xl:grid-cols-1">
+    <TOC headings={headings} />
+    <article class="prose-body min-w-0">
+      {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
+      <h1 class="display mb-3 text-3xl leading-tight sm:text-4xl" style="color: var(--ink);" transition:name={slug}>{title}</h1>
+      <p class="eyebrow mb-10">
+        <time datetime={date.toISOString()}>{fmt(date)}</time>
+        {updated && <span> · Updated <time datetime={updated.toISOString()}>{fmt(updated)}</time></span>}
+      </p>
+      <slot />
+    </article>
+  </div>
+  <CodeCopyScript />
+</BaseLayout>
+
+<style>
+  /* Scroll-driven gold progress bar. Pure CSS; hidden where unsupported. */
+  .reading-progress {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 2px;
+    z-index: 45; /* above the sticky nav (z-40), below the search dialog (z-50) */
+    background: var(--accent);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    animation: reading-progress linear both;
+    animation-timeline: scroll(root);
+  }
+  @keyframes reading-progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  @supports not (animation-timeline: scroll()) {
+    .reading-progress { display: none; }
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 120ms ease;
+  }
+  .back-link:hover {
+    color: var(--accent);
+  }
+  .back-link span {
+    display: inline-block;
+    transition: transform 120ms ease;
+  }
+  .back-link:hover span {
+    transform: translateX(-3px);
+  }
+</style>
+
+<script>
+  // Hover-revealed # links on h2/h3 — ids already exist (Astro slugs them).
+  function addHeadingAnchors() {
+    const headings = document.querySelectorAll<HTMLElement>(
+      '.prose-body :is(h2, h3)[id]:not([data-anchored])'
+    );
+    headings.forEach((h) => {
+      h.dataset.anchored = 'true';
+      const a = document.createElement('a');
+      a.href = `#${h.id}`;
+      a.className = 'heading-anchor';
+      a.textContent = '#';
+      a.setAttribute('aria-label', `Link to “${h.textContent}”`);
+      h.appendChild(a);
+    });
+  }
+  addHeadingAnchors();
+  document.addEventListener('astro:page-load', addHeadingAnchors);
+</script>

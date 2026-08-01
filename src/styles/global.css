@@ -1,0 +1,338 @@
+/* Two families only: Inter (body) and Newsreader (display). Italic display
+   text is browser-synthesized (font-synthesis) — not worth a 100KB face.
+   Mono is the system stack. */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/newsreader';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Pearl white is the default look: warm off-white ground, near-white card
+   surfaces with a faint sheen against it, refined charcoal ink. Dark mode
+   stays available behind the header toggle. */
+:root {
+  --bg: #f8f6f2;
+  --surface: #fffdfa;
+  --border: #e8e4dc;
+  --ink: #1c1f26;
+  --muted: #5d6570; /* ≥4.5:1 on --bg */
+  --card-meta: #646d78; /* dimmer than --muted but still ≥4.5:1 on --surface */
+  --accent-ink: #1c1f26;
+
+  /* accent palette: maester gold — reads as gold-on-pearl by default */
+  --accent: #f5c518;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0a111f;
+  --surface: #101a2c;
+  --border: #1f2c44;
+  --ink: #f2f4f9;
+  --muted: #93a2ba;
+  --card-meta: #8a99b3;
+  --accent-ink: #0a111f;
+}
+
+/* accent overrides, apply regardless of light/dark */
+:root[data-accent='yellow'] { --accent: #f5c518; }
+:root[data-accent='purple'] { --accent: #b28dff; }
+:root[data-accent='blue'] { --accent: #6fb1ff; }
+:root[data-accent='green'] { --accent: #6ee7b7; }
+:root[data-accent='orange'] { --accent: #ff9a5c; }
+
+html {
+  background-color: var(--bg);
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-feature-settings: 'ss01' 1;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---------- signature: display type + highlighter mark ---------- */
+
+.display {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.display em,
+.display .lilt {
+  font-style: italic;
+  font-weight: 450;
+}
+
+/* Yellow marker sweep — the one loud thing on the page. Draws itself in
+   left-to-right on load, like a highlighter pass over already-set type. */
+.mark {
+  display: inline-block;
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  color: var(--accent-ink);
+  padding: 0 0.3em;
+  border-radius: 2px;
+  transform: rotate(-1deg);
+  box-decoration-break: clone;
+  animation: mark-sweep 600ms cubic-bezier(0.25, 1, 0.5, 1) 250ms both;
+}
+
+/* Gold and the pearl background sit close in lightness, so by default the
+   mark gets a soft shadow for an edge without changing the accent hue.
+   Gold-on-navy pops on its own in dark mode — no shadow needed there. */
+.mark {
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 25%, transparent);
+}
+:root[data-theme='dark'] .mark {
+  box-shadow: none;
+}
+
+@keyframes mark-sweep {
+  from {
+    background-size: 0% 100%;
+    color: var(--ink);
+  }
+  to {
+    background-size: 100% 100%;
+    color: var(--accent-ink);
+  }
+}
+
+/* Small mono label: dates, section eyebrows, post types. */
+.eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Inline link style: ink text, gold underline that fills on hover. */
+.link-quiet {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  text-decoration-thickness: 2px;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.link-quiet:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+/* ---------- prose ---------- */
+
+.prose-body {
+  max-width: 68ch;
+}
+
+.prose-body h2 {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  margin-top: 2.5em;
+  margin-bottom: 0.75em;
+  font-size: 1.5rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+}
+
+.prose-body h3 {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+  font-size: 1.2rem;
+  font-weight: 550;
+}
+
+/* Anchor targets shouldn't hide under the sticky nav. */
+.prose-body h2,
+.prose-body h3 {
+  scroll-margin-top: 6rem;
+}
+
+/* Hover-revealed # link on headings (injected by ArticleLayout script). */
+.prose-body .heading-anchor {
+  margin-left: 0.35em;
+  color: var(--accent);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.prose-body :is(h2, h3):hover .heading-anchor,
+.prose-body .heading-anchor:focus-visible {
+  opacity: 1;
+}
+
+.prose-body p {
+  margin-bottom: 1.25em;
+  line-height: 1.75;
+  color: var(--ink);
+}
+
+.prose-body ul,
+.prose-body ol {
+  margin: 1em 0 1.5em 1.5em;
+  line-height: 1.75;
+}
+
+.prose-body li {
+  margin-bottom: 0.4em;
+}
+
+.prose-body a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  text-decoration-thickness: 2px;
+}
+.prose-body a:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+.prose-body blockquote {
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-style: italic;
+  font-size: 1.05em;
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  color: var(--muted);
+  margin: 1.5em 0;
+}
+
+.prose-body pre {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1.5em 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  position: relative;
+}
+
+/* Shiki emits both themes as CSS vars; pick per data-theme (light default). */
+.astro-code,
+.astro-code span {
+  color: var(--shiki-light) !important;
+  background-color: var(--shiki-light-bg) !important;
+}
+:root[data-theme='dark'] .astro-code,
+:root[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+.prose-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+}
+
+.prose-body :not(pre) > code {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+.prose-body img {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.prose-body hr {
+  border-color: var(--border);
+  margin: 2.5em 0;
+}
+
+.prose-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.9rem;
+}
+
+.prose-body th,
+.prose-body td {
+  border: 1px solid var(--border);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+/* ---------- chrome: skip link, theme toggle, diagrams, external arrows ---------- */
+
+/* Keyboard users skip the sticky nav; visible only on focus. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 60;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Theme toggle shows the icon for the theme you'd switch TO. */
+.theme-icon-sun { display: none; }
+:root[data-theme='dark'] .theme-icon-sun { display: block; }
+:root[data-theme='dark'] .theme-icon-moon { display: none; }
+
+/* Pre-rendered diagram SVGs: one variant per theme (light is the no-attribute
+   default, matching themeInit). */
+.diagram svg { max-width: 100%; height: auto; }
+.diagram .diagram-dark { display: none; }
+:root[data-theme='dark'] .diagram .diagram-dark { display: block; }
+:root[data-theme='dark'] .diagram .diagram-light { display: none; }
+
+/* External-link arrows nudge up-right on hover — same easing as the
+   article back-link arrow. */
+.ext-arrow {
+  display: inline-block;
+  transition: transform 120ms ease;
+}
+a:hover .ext-arrow {
+  transform: translate(2px, -2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
