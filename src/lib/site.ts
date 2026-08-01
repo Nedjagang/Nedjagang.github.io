@@ -12,5 +12,9 @@ export const SITE = {
   url: 'https://nedjagang.github.io',
   github: 'https://github.com/Nedjagang',
   linkedin: 'https://www.linkedin.com/in/praneeth-v-p-10422b1a4',
+  x: 'https://x.com/praneeth_veep',
+  // VeepTalks channels
+  youtube: 'https://www.youtube.com/@VeepTalks',
+  instagram: 'https://www.instagram.com/veeptalks',
   email: 'mailto:praneeth.vedalaveni@gmail.com',
 };

@@ -4,9 +4,10 @@ Personal portfolio and notebook of **Praneeth V P** — AI engineer building age
 backend systems, and self-hosted LLM infrastructure, with the observability to keep
 it all honest.
 
-Built with [Astro](https://astro.build), Tailwind, and MDX. Static output, deployable
-to any static host (Cloudflare Pages / GitHub Pages — `_redirects` and `_headers` in
-`public/` are picked up by Cloudflare automatically).
+Built with [Astro](https://astro.build), Tailwind, and MDX. Static output, deployed to
+**GitHub Pages** at <https://nedjagang.github.io> via `.github/workflows/deploy.yml`
+on every push to `main`. (`_redirects` and `_headers` in `public/` additionally support
+a Cloudflare Pages deploy if the site ever moves there.)
 
 ## Develop
 

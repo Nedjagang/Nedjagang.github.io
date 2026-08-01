@@ -12,6 +12,9 @@ import { SITE } from './src/lib/site';
 export default defineConfig({
   site: SITE.url,
   output: 'static',
+  // The About page moved to the homepage. Cloudflare honors public/_redirects;
+  // this covers static hosts like GitHub Pages with a generated redirect page.
+  redirects: { '/about': '/' },
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'hover',
