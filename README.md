@@ -9,8 +9,11 @@ Built with [Astro](https://astro.build), Tailwind, and MDX. Static output. Every
 
 - **Cloudflare Worker** `praneeth-dev` (static assets, config in `wrangler.jsonc`) →
   <https://dev.praneethveep.me> (canonical; `SITE.url` in `src/lib/site.ts`). Needs the
-  `CLOUDFLARE_API_TOKEN` repo secret (a token with *Workers Scripts: Edit* on the account);
-  without it that step is skipped. Manual deploy: `npm run build && npx wrangler deploy`.
+  `CLOUDFLARE_API_TOKEN` repo secret: a token with *Account → Workers Scripts → Edit* plus
+  *Zone → Workers Routes → Edit* and *Zone → DNS → Edit* on `praneethveep.me` (the custom
+  domain route). Without it the `cloudflare` job is skipped; with a token missing those
+  permissions it fails with "Authentication error [code: 10000]" and GitHub Pages still
+  deploys. Manual deploy: `npm run build && npx wrangler deploy`.
 - **GitHub Pages** → <https://nedjagang.github.io> (mirror; its canonical tags point at the
   Cloudflare domain).
 
