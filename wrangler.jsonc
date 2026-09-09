@@ -1,0 +1,17 @@
+// Cloudflare Worker that serves the built site as static assets behind
+// https://dev.praneethveep.me (custom domain attached in the dashboard).
+// Build first (`npm run build`), then `wrangler deploy`.
+{
+  "name": "praneeth-dev",
+  "compatibility_date": "2026-09-01",
+  // The custom domain is the only public entry point.
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "dev.praneethveep.me", "custom_domain": true }],
+  "assets": {
+    "directory": "./dist",
+    // Serve dist/404.html for unknown paths instead of an empty 404.
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

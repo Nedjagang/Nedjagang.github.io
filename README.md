@@ -7,14 +7,15 @@ it all honest.
 Built with [Astro](https://astro.build), Tailwind, and MDX. Static output. Every push to
 `main` runs `.github/workflows/deploy.yml`, which builds once and publishes to two places:
 
-- **Cloudflare Pages** project `praneethveep-dev` → <https://dev.praneethveep.me> (canonical;
-  `SITE.url` in `src/lib/site.ts`). Needs the `CLOUDFLARE_API_TOKEN` repo secret (a token
-  with *Cloudflare Pages: Edit* on the account); without it that step is skipped.
+- **Cloudflare Worker** `praneeth-dev` (static assets, config in `wrangler.jsonc`) →
+  <https://dev.praneethveep.me> (canonical; `SITE.url` in `src/lib/site.ts`). Needs the
+  `CLOUDFLARE_API_TOKEN` repo secret (a token with *Workers Scripts: Edit* on the account);
+  without it that step is skipped. Manual deploy: `npm run build && npx wrangler deploy`.
 - **GitHub Pages** → <https://nedjagang.github.io> (mirror; its canonical tags point at the
   Cloudflare domain).
 
-`_redirects` and `_headers` in `public/` are honored by Cloudflare Pages; GitHub Pages gets
-the equivalent from Astro's `redirects` config.
+`_redirects` and `_headers` in `public/` are honored by Cloudflare's static assets; GitHub
+Pages gets the equivalent from Astro's `redirects` config.
 
 ## Develop
 
