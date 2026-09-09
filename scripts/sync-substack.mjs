@@ -107,7 +107,21 @@ async function main() {
   }
 
   const res = await fetchFeed(FEED_URL);
-  if (!res.ok) throw new Error(`Substack feed fetch failed: ${res.status} ${FEED_URL}`);
+  if (!res.ok) {
+    // Substack's Cloudflare edge blocks datacenter IPs (GitHub-hosted runners)
+    // with 403/429 no matter the headers. Nothing in this repo defeats that, so
+    // treat it as a clean skip rather than a failed run: import instead by
+    // running this script from a residential/office network and committing the
+    // result. Any other status is a real error and still fails.
+    if (res.status === 403 || res.status === 429) {
+      console.warn(
+        `Feed blocked by the upstream edge (${res.status}) after retries — expected from ` +
+          `datacenter IPs such as GitHub-hosted runners. Skipping; import from another network.`,
+      );
+      return;
+    }
+    throw new Error(`Substack feed fetch failed: ${res.status} ${FEED_URL}`);
+  }
   const xml = await res.text();
   if (!/^\s*(<\?xml|<rss)/.test(xml)) {
     // A profile URL such as https://NAME.substack.com redirects to substack.com/@NAME
