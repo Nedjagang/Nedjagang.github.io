@@ -1,0 +1,56 @@
+---
+title: "Every AIOps demo works. Almost none are running in production."
+date: 2026-09-09
+kind: Note
+summary: "AI that fixes your production problems is not blocked on the AI. It's blocked on messy monitoring data and on nobody deciding who lets it press the button."
+tags: ["AIOps", "Observability", "AI agents", "SRE"]
+draft: false
+---
+
+Every "AI fixes your production issues" demo I've seen this year works. The agent reads the alert, pulls the logs, finds the bad deploy, suggests the rollback, and the room nods. And then almost none of them end up actually running in anyone's production.
+
+I look after monitoring for a large company's infrastructure, and I've spent a good part of this year working out where AI fits into that job. Not whether it fits. Where. The answer I keep landing on is that the gap between the demo and real life has very little to do with the AI, and a lot to do with two things that never make it onto the slide.
+
+## First problem: the data underneath
+
+Start with what the AI can actually see.
+
+When an application breaks, the clues are spread across three kinds of data. Logs, which are the lines your code prints as it runs. Metrics, which are the numbers you graph, like requests per second or memory used. And traces, which follow a single request as it hops between services. Together they're called telemetry, and in a healthy setup they tell one story about one incident.
+
+In most companies they don't tell one story. The logs call a service `payments-api`, the metrics call it `payment_service`, and the traces call it something else because that team set things up two years earlier. The clocks aren't quite in sync. Half the logs don't carry the request ID that would let you connect them to a trace. None of this stops a human, because a human on-call at 3 AM knows all three names refer to the same thing and joins the dots in their head.
+
+The AI doesn't know that. Give it three sources that don't agree and it won't tell you it's confused. It will pick the most plausible story and tell you with full confidence. That's worse than no answer, because it's an answer that looks finished.
+
+A lot of teams meet the mess in their monitoring data for the very first time on the day they try to put an AI on top of it. The demo worked because the demo ran on clean data. Production is not clean.
+
+## Second problem: who lets it press the button
+
+Now assume the data is fine. The AI reads everything correctly and says: "the deploy at 14:02 is the cause, roll it back."
+
+Nobody in the room is worried about whether that suggestion is good. They're worried about what happens next. Does the AI roll it back itself? Who approved that? What if it's wrong? Who explains it to the customer? This is the conversation that actually stalls AIOps projects, and it's a conversation about permission, not technology.
+
+The way I think about it is a ladder with four steps.
+
+**Step one, it watches.** The AI reads the same data your engineers read and explains what it sees. "Error rate on checkout went up right after this deploy." No suggestions, no actions. This alone is useful, because a good explanation at 3 AM saves twenty minutes of digging.
+
+**Step two, it suggests.** Same as above, plus "here's what I'd do about it." A human reads the suggestion and decides. The AI never touches anything.
+
+**Step three, it acts with approval.** The AI prepares the fix and asks. A human clicks yes or no. If yes, the AI does it.
+
+**Step four, it acts alone.** No human in the loop. This should only ever apply to a small set of actions that are boring, well understood, and easy to undo. Restarting a stuck worker, maybe. Never a database migration.
+
+Most teams should sit at step two for a long time, and that is not a failure. An AI that tells your on-call engineer "here's what I think is wrong and here's what I'd do" is already a large improvement on staring at six dashboards. The pressure to jump straight to step four comes from the demo, not from the job.
+
+## What this means if you're starting
+
+If you're a team trying to bring AI into how you run production, the unglamorous version of the plan looks like this.
+
+Get your telemetry to agree with itself. Same service names everywhere. Request IDs that carry through logs and traces. Clocks that match. In the OpenTelemetry world this is what the semantic conventions are for: a shared vocabulary so that "service name" means the same thing in every signal. It's tedious work and it's the whole foundation.
+
+Then start at step one. Let the AI watch and explain for a while. You'll learn very quickly whether it's reading your systems correctly, and you'll learn it without anything being at risk.
+
+Then decide, in writing, what it's allowed to touch before you move it up a step. Not "we'll figure it out." A list.
+
+The uncomfortable part for anyone selling this stuff is that the AI itself is the easy bit. The real work is cleaning your data and deciding what the machine is allowed to do. Neither of those is a model problem, and neither of them shows up in a demo.
+
+If your team is somewhere on this ladder, I'd like to hear which step you're on and what's actually holding you there.
