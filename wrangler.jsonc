@@ -3,6 +3,7 @@
 // Build first (`npm run build`), then `wrangler deploy`.
 {
   "name": "praneeth-dev",
+  "account_id": "7b6c82b86fefbfafb9c96a02e06ba0d6",
   "compatibility_date": "2026-09-01",
   // The custom domain is the only public entry point.
   "workers_dev": false,
