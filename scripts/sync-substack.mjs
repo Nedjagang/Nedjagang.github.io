@@ -36,13 +36,63 @@ function yamlString(value) {
   return `"${flat.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }
 
-// Substack appends its own subscribe/share widgets to the post body. They are
-// noise on a static site and their scripts do not run here, so drop them.
+// Substack appends its own subscribe widgets to the post body: a
+// <div class="subscription-widget-wrap-editor" ...> that nests several divs and
+// a <form>. They are noise on a static site and their scripts do not run here,
+// so remove each one as a depth-balanced <div> block (a plain regex cannot
+// balance the nesting and would leave orphaned </form></div> tags behind).
 function stripSubstackWidgets(html) {
-  return html
-    .replace(/<div class="subscription-widget-wrap[\s\S]*?<\/div>\s*<\/div>/g, '')
-    .replace(/<p class="button-wrapper"[\s\S]*?<\/p>/g, '')
+  let out = html;
+  const marker = '<div class="subscription-widget';
+  let start;
+  while ((start = out.indexOf(marker)) !== -1) {
+    const tagRe = /<(\/?)div\b[^>]*>/g;
+    tagRe.lastIndex = start;
+    let depth = 0;
+    let end = -1;
+    let m;
+    while ((m = tagRe.exec(out)) !== null) {
+      depth += m[1] ? -1 : 1;
+      if (depth === 0) {
+        end = m.index + m[0].length;
+        break;
+      }
+    }
+    // Unbalanced (truncated feed): drop from the marker on and stop.
+    out = end === -1 ? out.slice(0, start) : out.slice(0, start) + out.slice(end);
+    if (end === -1) break;
+  }
+  return out
+    .replace(/<\/?form[^>]*>/g, '') // stray form wrappers Substack leaves around the body
+    .replace(/(\s*<div>\s*<hr\s*\/?>\s*<\/div>\s*)+$/g, '') // trailing separator
+    .replace(/(\s*<hr\s*\/?>\s*)+$/g, '')
     .trim();
+}
+
+// Substack sits behind Cloudflare, which challenges requests from datacenter
+// IPs (GitHub Actions runners) — especially with a non-browser User-Agent. Send
+// browser-like headers and retry a few times on the transient block codes
+// (403/429/5xx). A hard IP block can still win; when it does, run this script
+// from a residential/office network instead and commit the result.
+async function fetchFeed(url) {
+  const headers = {
+    'User-Agent':
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+    Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+  const RETRYABLE = new Set([403, 429, 500, 502, 503, 504]);
+  let res;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    res = await fetch(url, { headers, redirect: 'follow' });
+    if (res.ok || !RETRYABLE.has(res.status)) return res;
+    if (attempt < 4) {
+      const wait = 2000 * attempt;
+      console.warn(`Feed returned ${res.status}; retry ${attempt}/3 in ${wait}ms`);
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+  return res;
 }
 
 async function main() {
@@ -56,9 +106,7 @@ async function main() {
     throw new Error(`SUBSTACK_FEED_URL is not a valid URL: "${FEED_URL}"`);
   }
 
-  const res = await fetch(FEED_URL, {
-    headers: { 'User-Agent': 'praneeth-portfolio-sync/1.0 (+https://github.com/Nedjagang)' },
-  });
+  const res = await fetchFeed(FEED_URL);
   if (!res.ok) throw new Error(`Substack feed fetch failed: ${res.status} ${FEED_URL}`);
   const xml = await res.text();
   if (!/^\s*(<\?xml|<rss)/.test(xml)) {
