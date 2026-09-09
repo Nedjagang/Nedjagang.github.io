@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nedjagang.github.io/sitemap-index.xml
+Sitemap: https://dev.praneethveep.me/sitemap-index.xml

@@ -1,4 +1,9 @@
-name: Deploy to GitHub Pages
+name: Deploy
+
+# Two targets from one build:
+#   - GitHub Pages            https://nedjagang.github.io       (always)
+#   - Cloudflare Pages        https://dev.praneethveep.me       (project praneethveep-dev;
+#                              needs the CLOUDFLARE_API_TOKEN repo secret, else skipped)
 
 on:
   push:
@@ -14,6 +19,14 @@ permissions:
 concurrency:
   group: pages
   cancel-in-progress: true
+
+env:
+  # Account id is not a secret (it is in every dashboard URL). The token is:
+  # create one with "Cloudflare Pages: Edit" on this account and store it as
+  # the CLOUDFLARE_API_TOKEN repository secret.
+  CLOUDFLARE_ACCOUNT_ID: 7b6c82b86fefbfafb9c96a02e06ba0d6
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_PAGES_PROJECT: praneethveep-dev
 
 jobs:
   build:
@@ -33,6 +46,18 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+
+      - name: Deploy to Cloudflare Pages (dev.praneethveep.me)
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ env.CLOUDFLARE_PAGES_PROJECT }} --branch=main --commit-hash=${{ github.sha }}
+
+      - name: Cloudflare Pages deploy skipped
+        if: env.CLOUDFLARE_API_TOKEN == ''
+        run: echo "::notice::CLOUDFLARE_API_TOKEN secret is not set, so dev.praneethveep.me was not updated. GitHub Pages still deploys."
 
   deploy:
     needs: build

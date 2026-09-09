@@ -4,10 +4,17 @@ Personal portfolio and notebook of **Praneeth V P** — AI engineer building age
 backend systems, and self-hosted LLM infrastructure, with the observability to keep
 it all honest.
 
-Built with [Astro](https://astro.build), Tailwind, and MDX. Static output, deployed to
-**GitHub Pages** at <https://nedjagang.github.io> via `.github/workflows/deploy.yml`
-on every push to `main`. (`_redirects` and `_headers` in `public/` additionally support
-a Cloudflare Pages deploy if the site ever moves there.)
+Built with [Astro](https://astro.build), Tailwind, and MDX. Static output. Every push to
+`main` runs `.github/workflows/deploy.yml`, which builds once and publishes to two places:
+
+- **Cloudflare Pages** project `praneethveep-dev` → <https://dev.praneethveep.me> (canonical;
+  `SITE.url` in `src/lib/site.ts`). Needs the `CLOUDFLARE_API_TOKEN` repo secret (a token
+  with *Cloudflare Pages: Edit* on the account); without it that step is skipped.
+- **GitHub Pages** → <https://nedjagang.github.io> (mirror; its canonical tags point at the
+  Cloudflare domain).
+
+`_redirects` and `_headers` in `public/` are honored by Cloudflare Pages; GitHub Pages gets
+the equivalent from Astro's `redirects` config.
 
 ## Develop
 
