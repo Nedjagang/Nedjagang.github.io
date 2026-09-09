@@ -35,14 +35,16 @@ npm run build    # static build into dist/
 - `src/content/projects/` — project pages (MDX)
 - `src/lib/site.ts` — single source of identity (name, links, domain)
 - `scripts/sync-substack.mjs` — one-way import of a Substack feed into
-  `src/content/writing/`. Set the `SUBSTACK_FEED_URL` repo variable (a publication feed,
+  `src/content/writing/`, converting each post's HTML into clean Markdown (headings feed
+  the table of contents; the site's prose styles apply, so a synced post looks identical
+  to a hand-written one). Set the `SUBSTACK_FEED_URL` repo variable (a publication feed,
   `https://NAME.substack.com/feed`) to enable it; while unset the job is skipped.
-  `.github/workflows/sync-substack.yml` runs it nightly, but **Substack's Cloudflare edge
-  returns 403 to GitHub-hosted runners** (datacenter IPs), so the scheduled run usually
-  imports nothing and skips cleanly. To actually pull new posts, run it from a normal
-  network and commit the result:
+  `.github/workflows/sync-substack.yml` runs it nightly and after each Substack publish it
+  picks the post up automatically. Substack's Cloudflare edge returns 403 to GitHub-hosted
+  runners (datacenter IPs), so on CI the script fetches through the rss2json proxy instead;
+  the direct feed and the proxy produce byte-identical Markdown, so runs are idempotent.
+  Run it locally the same way (`SUBSTACK_FORCE_PROXY=1` reproduces the CI path exactly):
 
   ```sh
   SUBSTACK_FEED_URL=https://NAME.substack.com/feed node scripts/sync-substack.mjs
-  git add src/content/writing && git commit -m "content: sync from Substack" && git push
   ```
