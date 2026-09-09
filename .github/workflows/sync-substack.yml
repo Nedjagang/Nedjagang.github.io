@@ -1,5 +1,9 @@
 name: Sync Substack
 
+# Nightly one-way import of Substack posts into src/content/writing/. Enabled by
+# the SUBSTACK_FEED_URL repository variable; while it is unset the job is skipped
+# instead of failing.
+
 on:
   schedule:
     - cron: '30 0 * * *'
@@ -7,23 +11,26 @@ on:
 
 permissions:
   contents: write
+  actions: write # to start the Deploy workflow after pushing synced posts
 
 jobs:
   sync:
+    if: ${{ vars.SUBSTACK_FEED_URL != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - run: node scripts/sync-substack.mjs
         env:
           SUBSTACK_FEED_URL: ${{ vars.SUBSTACK_FEED_URL }}
 
-      # No skip-CI marker: synced posts are new content, the deploy SHOULD run.
-      - name: Commit and push
+      - name: Commit, push, and deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "substack-sync-bot"
           git config user.email "actions@users.noreply.github.com"
@@ -34,3 +41,6 @@ jobs:
           fi
           git commit -m "content: sync posts from Substack"
           git push
+          # A push made with the workflow token does not fire `on: push`
+          # workflows, so start the deploy explicitly.
+          gh workflow run deploy.yml --ref main
